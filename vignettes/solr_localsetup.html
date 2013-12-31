@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title>Local setup of Solr and querying using solr R package, on Mac OSX</title>
+
+
+
+
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+</style>
+
+
+
+</head>
+
+<body>
+<!--
+%\VignetteEngine{knitr::knitr}
+%\VignetteIndexEntry{Local Solr setup}
+-->
+
+<h1>Local setup of Solr and querying using solr R package, on Mac OSX</h1>
+
+<p><em>This material is based on this blog post: <a href="http://risnandar.wordpress.com/2013/09/08/how-to-install-and-setup-apache-lucene-solr-in-osx/">http://risnandar.wordpress.com/2013/09/08/how-to-install-and-setup-apache-lucene-solr-in-osx/</a></em></p>
+
+<ol>
+<li>If you don&#39;t have homebrew installed, install homebrew by doing &ldquo;. If you have homebrew skip to step 2. </li>
+<li>Install solr by doing <code>brew install solr</code>. This installed solr v.4.5.1</li>
+<li>Navigate in your terminal to an example Solr database: <code>cd /usr/local/Cellar/solr/4.5.1/libexec/example/</code></li>
+<li>Start solr: <code>java -jar start.jar</code></li>
+<li>Navigate in your browser to <a href="http://localhost:8983/solr/#/">http://localhost:8983/solr/#/</a></li>
+<li>Navigate in your terminal to <code>cd /usr/local/Cellar/solr/4.5.1/libexec/example/exampledocs/</code>, then execute <code>./post.sh vidcard.xml</code> in that directory. This inserts some data into the example database. </li>
+</ol>
+
+<p>Try this query in your browser: (http://localhost:8983/solr/select?q=<em>:</em>&amp;wt=json)[http://localhost:8983/solr/select?q=<em>:</em>&amp;wt=json]</p>
+
+<p>And we can now use the <code>solr</code> R package to query the Solr database to get raw JSON data:</p>
+
+<pre><code class="coffee">url &lt;- &#39;http://localhost:8983/solr/select&#39;
+solr_search(q=&#39;*:*&#39;, url=url, raw=TRUE)
+</code></pre>
+
+<pre><code class="coffee">[1] &quot;{\&quot;responseHeader\&quot;:{\&quot;status\&quot;:0,\&quot;QTime\&quot;:1,\&quot;params\&quot;:{\&quot;start\&quot;:\&quot;0\&quot;,\&quot;q\&quot;:\&quot;*:*\&quot;,\&quot;wt\&quot;:\&quot;json\&quot;}},\&quot;response\&quot;:{\&quot;numFound\&quot;:2,\&quot;start\&quot;:0,\&quot;docs\&quot;:[{\&quot;id\&quot;:\&quot;EN7800GTX/2DHTV/256M\&quot;,\&quot;name\&quot;:\&quot;ASUS Extreme N7800GTX/2DHTV (256 MB)\&quot;,\&quot;manu\&quot;:\&quot;ASUS Computer Inc.\&quot;,\&quot;manu_id_s\&quot;:\&quot;asus\&quot;,\&quot;cat\&quot;:[\&quot;electronics\&quot;,\&quot;graphics card\&quot;],\&quot;features\&quot;:[\&quot;NVIDIA GeForce 7800 GTX GPU/VPU clocked at 486MHz\&quot;,\&quot;256MB GDDR3 Memory clocked at 1.35GHz\&quot;,\&quot;PCI Express x16\&quot;,\&quot;Dual DVI connectors, HDTV out, video input\&quot;,\&quot;OpenGL 2.0, DirectX 9.0\&quot;],\&quot;weight\&quot;:16.0,\&quot;price\&quot;:479.95,\&quot;price_c\&quot;:\&quot;479.95,USD\&quot;,\&quot;popularity\&quot;:7,\&quot;store\&quot;:\&quot;40.7143,-74.006\&quot;,\&quot;inStock\&quot;:false,\&quot;manufacturedate_dt\&quot;:\&quot;2006-02-13T00:00:00Z\&quot;,\&quot;_version_\&quot;:1455773551158099968},{\&quot;id\&quot;:\&quot;100-435805\&quot;,\&quot;name\&quot;:\&quot;ATI Radeon X1900 XTX 512 MB PCIE Video Card\&quot;,\&quot;manu\&quot;:\&quot;ATI Technologies\&quot;,\&quot;manu_id_s\&quot;:\&quot;ati\&quot;,\&quot;cat\&quot;:[\&quot;electronics\&quot;,\&quot;graphics card\&quot;],\&quot;features\&quot;:[\&quot;ATI RADEON X1900 GPU/VPU clocked at 650MHz\&quot;,\&quot;512MB GDDR3 SDRAM clocked at 1.55GHz\&quot;,\&quot;PCI Express x16\&quot;,\&quot;dual DVI, HDTV, svideo, composite out\&quot;,\&quot;OpenGL 2.0, DirectX 9.0\&quot;],\&quot;weight\&quot;:48.0,\&quot;price\&quot;:649.99,\&quot;price_c\&quot;:\&quot;649.99,USD\&quot;,\&quot;popularity\&quot;:7,\&quot;inStock\&quot;:false,\&quot;manufacturedate_dt\&quot;:\&quot;2006-02-13T00:00:00Z\&quot;,\&quot;store\&quot;:\&quot;40.7143,-74.006\&quot;,\&quot;_version_\&quot;:1455773551214723072}]}}\n&quot;
+attr(,&quot;class&quot;)
+[1] &quot;sr_search&quot;
+attr(,&quot;wt&quot;)
+[1] &quot;json&quot;
+</code></pre>
+
+<p>Or parsed data to a data.frame (just looking at a few columns for brevity):</p>
+
+<pre><code class="coffee">solr_search(q=&#39;*:*&#39;, url=url)[,c(1:3)]
+</code></pre>
+
+<pre><code class="coffee">                    id                                        name               manu
+1 EN7800GTX/2DHTV/256M        ASUS Extreme N7800GTX/2DHTV (256 MB) ASUS Computer Inc.
+2           100-435805 ATI Radeon X1900 XTX 512 MB PCIE Video Card   ATI Technologies
+</code></pre>
+
+<h1>Local setup of Solr on Windows and Linux</h1>
+
+<p>I&#39;m a Mac user, so I&#39;m not too familiar with Windows and Linux, but will get to this soon, or send a pull request with instructions in this file. </p>
+
+</body>
+
+</html>

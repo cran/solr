@@ -1,0 +1,41 @@
+\name{solr_parse}
+\alias{solr_parse}
+\alias{solr_parse.sr_facet}
+\alias{solr_parse.sr_high}
+\alias{solr_parse.sr_mlt}
+\alias{solr_parse.sr_search}
+\alias{solr_parse.sr_stats}
+\title{Parse raw data from solr_search, solr_facet, or solr_highlight.}
+\usage{
+solr_parse(input, parsetype, concat)
+
+\method{solr_parse}{sr_facet}(input, parsetype = NULL, concat = ",")
+
+\method{solr_parse}{sr_high}(input, parsetype = "list", concat = ",")
+
+\method{solr_parse}{sr_search}(input, parsetype = "list", concat = ",")
+
+\method{solr_parse}{sr_mlt}(input, parsetype = "list", concat = ",")
+
+\method{solr_parse}{sr_stats}(input, parsetype = "list", concat = ",")
+}
+\arguments{
+  \item{input}{Output from solr_facet}
+
+  \item{parsetype}{One of 'list' or 'df' (data.frame)}
+
+  \item{concat}{Character to conactenate strings by, e.g,.
+  ',' (character). Used in solr_parse.sr_search only.}
+}
+\description{
+See details.
+}
+\details{
+This is the parser used internally in solr_facet, but if
+you output raw data from solr_facet using raw=TRUE, then
+you can use this function to parse that data (a sr_facet S3
+object) after the fact to a list of data.frame's for easier
+consumption. The data format type is detected from the
+attribute "wt" on the sr_facet object.
+}
+
