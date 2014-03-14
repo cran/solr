@@ -14,6 +14,7 @@ This package only deals with exracting data from a Solr endpoint, not writing da
 + [Faceting help](http://wiki.apache.org/solr/SimpleFacetParameters)
 + [Solr stats](http://wiki.apache.org/solr/StatsComponent)
 + ['More like this' searches](http://wiki.apache.org/solr/MoreLikeThis)
++ [Grouping/Feild collapsing](http://wiki.apache.org/solr/FieldCollapsing)
 + [Installing Solr on Mac using homebrew](http://ramlev.dk/blog/2012/06/02/install-apache-solr-on-your-mac/)
 + [Install and Setup SOLR in OSX, including running Solr](http://risnandar.wordpress.com/2013/09/08/how-to-install-and-setup-apache-lucene-solr-in-osx/)
 
@@ -46,7 +47,7 @@ key <- 'key'
 **Search**
 
 ```coffee
-solr_search(q='*:*', rows=2, fl='id', url=url, key=key)
+solr_search(q='*:*', rows=2, fl='id', base=url, key=key)
 ```
 
 ```coffee
@@ -68,10 +69,77 @@ $response$docs[[2]]$id
 [1] "10.1371/journal.pone.0010659"
 ```
 
+**Search grouped data**
+
+Most recent publication by journal
+
+```coffee
+solr_group(q='*:*', group.field='journal', rows=5, group.limit=1, group.sort='publication_date desc', fl='publication_date, score', base=url, key=key)
+```
+
+```coffee
+                  groupValue numFound start     publication_date score
+1                   plos one   676409     0 2014-01-16T00:00:00Z     1
+2                       none    62518     0 2012-10-23T00:00:00Z     1
+3             plos pathogens    29623     0 2014-01-16T00:00:00Z     1
+4 plos computational biology    25093     0 2014-01-16T00:00:00Z     1
+5              plos genetics    33698     0 2014-01-16T00:00:00Z     
+```
+
+First publication by journal
+
+```coffee
+solr_group(q='*:*', group.field='journal', group.limit=1, group.sort='publication_date asc', fl='publication_date, score', fq="publication_date:[1900-01-01T00:00:00Z TO *]", base=url, key=key)
+```
+
+
+```coffee
+                         groupValue numFound start     publication_date score
+1                          plos one   676409     0 2006-12-01T00:00:00Z     1
+2                              none    57574     0 2012-07-17T00:00:00Z     1
+3                    plos pathogens    29623     0 2005-07-22T00:00:00Z     1
+4        plos computational biology    25093     0 2005-06-24T00:00:00Z     1
+5                     plos genetics    33698     0 2005-06-17T00:00:00Z     1
+6  plos neglected tropical diseases    19106     0 2007-08-30T00:00:00Z     1
+7                      plos biology    24111     0 2003-08-18T00:00:00Z     1
+8                     plos medicine    17118     0 2004-09-07T00:00:00Z     1
+9              plos clinical trials      521     0 2006-04-21T00:00:00Z     1
+10                     plos medicin        9     0 2012-04-17T00:00:00Z     1
+```
+
+Search group query : Last 3 publications of 2013.  
+
+```coffee
+solr_group(q='*:*', group.query='publication_date:[2013-01-01T00:00:00Z TO 2013-12-31T00:00:00Z]', group.limit = 3, group.sort='publication_date desc', fl='publication_date', base=url, key=key)
+```
+
+```coffee
+  numFound start     publication_date
+1   299130     0 2013-12-31T00:00:00Z
+2   299130     0 2013-12-31T00:00:00Z
+3   299130     0 2013-12-31T00:00:00Z
+```
+
+Search group with format simple 
+
+```coffee
+solr_group(q='*:*', group.field='journal', rows=5, group.limit=3, group.sort='publication_date desc', group.format='simple', fl='journal, publication_date', base=url, key=key)
+```
+
+```coffee
+  numFound start                          journal     publication_date
+1   889099     0                         PLoS ONE 2014-01-17T00:00:00Z
+2   889099     0                         PLoS ONE 2014-01-17T00:00:00Z
+3   889099     0                         PLoS ONE 2014-01-17T00:00:00Z
+4   889099     0 PLoS Neglected Tropical Diseases 2014-01-16T00:00:00Z
+5   889099     0 PLoS Neglected Tropical Diseases 2014-01-16T00:00:00Z
+```
+
+
 **Facet**
 
 ```coffee
-solr_facet(q='*:*', facet.field='journal', facet.query='cell,bird', url=url, key=key)
+solr_facet(q='*:*', facet.field='journal', facet.query='cell,bird', base=url, key=key)
 ```
 
 ```coffee
@@ -108,7 +176,7 @@ NULL
 **Highlight**
 
 ```coffee
-solr_highlight(q='alcohol', hl.fl = 'abstract', rows=2, url = url, key=key)
+solr_highlight(q='alcohol', hl.fl = 'abstract', rows=2, base = url, key=key)
 ```
 
 ```coffee
@@ -124,7 +192,7 @@ $`10.1371/journal.pone.0027752`$abstract
 **Stats**
 
 ```coffee
-out <- solr_stats(q='ecology', stats.field='counter_total_all,alm_twitterCount', stats.facet='journal,volume', url=url, key=key)
+out <- solr_stats(q='ecology', stats.field='counter_total_all,alm_twitterCount', stats.facet='journal,volume', base=url, key=key)
 ```
 
 ```coffee
@@ -197,7 +265,7 @@ $alm_twitterCount$volume
 `solr_mlt` is a function to return similar documents to the one 
 
 ```coffee
-out <- solr_mlt(q='title:"ecology" AND body:"cell"', mlt.fl='title', mlt.mindf=1, mlt.mintf=1, fl='counter_total_all', rows=5, url=url, key=key)
+out <- solr_mlt(q='title:"ecology" AND body:"cell"', mlt.fl='title', mlt.mindf=1, mlt.mintf=1, fl='counter_total_all', rows=5, base=url, key=key)
 out$docs
                             id counter_total_all
 1 10.1371/journal.pbio.0020440             15977
@@ -245,7 +313,7 @@ out$mlt
 For example:
 
 ```coffee
-(out <- solr_highlight(q='alcohol', hl.fl = 'abstract', rows=2, url = url, key=key, raw=TRUE))
+(out <- solr_highlight(q='alcohol', hl.fl = 'abstract', rows=2, base = url, key=key, raw=TRUE))
 ```
 
 ```coffee
@@ -277,7 +345,7 @@ Function Queries allow you to query on actual numeric fields in the SOLR databas
 
 ```coffee
 solr_search(q='_val_:"product(counter_total_all,alm_twitterCount)"', 
-  rows=5, fl='id,title', fq='doc_type:full', url=url, key=key)
+  rows=5, fl='id,title', fq='doc_type:full', base=url, key=key)
 ```
 
 ```coffee
@@ -293,7 +361,7 @@ Here, we search for the papers with the most citations
 
 ```coffee
 solr_search(q='_val_:"max(counter_total_all)"', 
-    rows=5, fl='id,counter_total_all', fq='doc_type:full', url=url, key=key)
+    rows=5, fl='id,counter_total_all', fq='doc_type:full', base=url, key=key)
 ```
 
 ```coffee
@@ -309,7 +377,7 @@ Or with the most tweets
 
 ```coffee
 solr_search(q='_val_:"max(alm_twitterCount)"', 
-    rows=5, fl='id,alm_twitterCount', fq='doc_type:full', url=url, key=key)
+    rows=5, fl='id,alm_twitterCount', fq='doc_type:full', base=url, key=key)
 ```
 
 ```coffee
@@ -329,7 +397,7 @@ The occurrences service
 
 ```coffee
 url <- "http://bisonapi.usgs.ornl.gov/solr/occurrences/select"
-solr_search(q='*:*', fl='latitude,longitude,scientific_name', url=url)
+solr_search(q='*:*', fl='latitude,longitude,scientific_name', base=url)
 ```
 
 ```coffee
@@ -349,7 +417,7 @@ solr_search(q='*:*', fl='latitude,longitude,scientific_name', url=url)
 The species names service
 
 ```coffee
-solr_search(q='*:*', url=url2, raw=TRUE)
+solr_search(q='*:*', base=url2, raw=TRUE)
 ```
 
 ```coffee
@@ -387,7 +455,7 @@ A BibTeX entry for LaTeX users is
     author = {Scott Chamberlain},
     year = {2013},
     note = {R package version 0.0.5},
-    url = {https://github.com/ropensci/solr},
+    base = {https://github.com/ropensci/solr},
   }
 ```
 

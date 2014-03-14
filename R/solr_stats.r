@@ -10,27 +10,27 @@
 #' more information on Solr stats.
 #' @export
 #' @examples \dontrun{
-#' url <- 'http://api.plos.org/search'; key = getOption('PlosApiKey')
-#' solr_stats(q='science', stats.field='counter_total_all', url=url, key=key, raw=TRUE)
+#' url <- 'http://api.plos.org/search'
+#' solr_stats(q='science', stats.field='counter_total_all', base=url, raw=TRUE)
 #' solr_stats(q='title:"ecology" AND body:"cell"', 
-#'    stats.field='counter_total_all,alm_twitterCount', url=url, key=key)
-#' solr_stats(q='ecology', stats.field='counter_total_all,alm_twitterCount', 
-#'    stats.facet='journal', url=url, key=key)
-#' solr_stats(q='ecology', stats.field='counter_total_all,alm_twitterCount', 
-#'    stats.facet='journal,volume', url=url, key=key)
+#'    stats.field=c('counter_total_all','alm_twitterCount'), base=url)
+#' solr_stats(q='ecology', stats.field=c('counter_total_all','alm_twitterCount'), 
+#'    stats.facet='journal', base=url)
+#' solr_stats(q='ecology', stats.field=c('counter_total_all','alm_twitterCount'), 
+#'    stats.facet=c('journal','volume'), base=url)
 #' 
 #' # Get raw data, then parse later if you feel like it
 #' ## json
-#' out <- solr_stats(q='ecology', stats.field='counter_total_all,alm_twitterCount', 
-#'    stats.facet='journal,volume', url=url, key=key, raw=TRUE)
+#' out <- solr_stats(q='ecology', stats.field=c('counter_total_all','alm_twitterCount'), 
+#'    stats.facet=c('journal','volume'), base=url, raw=TRUE)
 #' library(rjson)
 #' fromJSON(out)
 #' solr_parse(out) # list
 #' solr_parse(out, 'df') # data.frame
 #' 
 #' ## xml
-#' out <- solr_stats(q='ecology', stats.field='counter_total_all,alm_twitterCount', 
-#'    stats.facet='journal,volume', url=url, key=key, raw=TRUE, wt="xml")
+#' out <- solr_stats(q='ecology', stats.field=c('counter_total_all','alm_twitterCount'), 
+#'    stats.facet=c('journal','volume'), base=url, raw=TRUE, wt="xml")
 #' library(XML)
 #' xmlParse(out)
 #' solr_parse(out) # list
@@ -38,35 +38,23 @@
 #' 
 #' # Get verbose http call information
 #' library(httr)
-#' solr_stats(q='ecology', stats.field='alm_twitterCount', url=url, key=key, 
+#' solr_stats(q='ecology', stats.field='alm_twitterCount', base=url, 
 #'    callopts=verbose())
 #' }
 
 solr_stats <- function(q='*:*', stats.field=NULL, stats.facet=NULL, wt='json', start=0,
-  rows=0, key = NULL, url = NULL, callopts=list(), raw=FALSE, parsetype='df')
+  rows=0, key = NULL, base = NULL, callopts=list(), raw=FALSE, parsetype='df', verbose=TRUE)
 {
-  makemultiargs <- function(x){
-    value <- eval(parse(text=x))
-    if(is.null(value)){ NULL } else {
-      if(is.na(value)){ NULL } else {
-        if(!is.character(value)){ 
-          value <- as.character(value)
-        } 
-        y <- strsplit(value,",")[[1]]
-        names(y) <- rep(x, length(y))
-        y
-      }
-    }
+  if(is.null(base)){
+    stop("You must provide a url, e.g., http://api.plos.org/search or http://localhost:8983/solr/select")
   }
+  
   todonames <- c("q", "stats.field", "stats.facet", "start", "rows", "key", "wt")
-  outlist <- list()
-  for(i in seq_along(todonames)){
-    outlist[[i]] <- makemultiargs(todonames[[i]])
-  }
-  args <- as.list(unlist(compact(outlist)))
+  args <- collectargs(todonames)
   args$stats <- 'true'
   
-  tt <- GET(url, query = args, callopts)
+  tt <- GET(base, query = args, callopts)
+  if(verbose) message(URLdecode(tt$url))
   stop_for_status(tt)
   out <- content(tt, as="text")
   class(out) <- "sr_stats"

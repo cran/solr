@@ -2,11 +2,10 @@
 context("solr_stats")
 
 url <- 'http://api.plos.org/search'
-key = 'key'
 
-a <- solr_stats(q='science', stats.field='counter_total_all', url=url, key=key, raw=TRUE)
-b <- solr_stats(q='ecology', stats.field='counter_total_all,alm_twitterCount', stats.facet='journal,volume', url=url, key=key)
-c <- solr_stats(q='ecology', stats.field='counter_total_all,alm_twitterCount', stats.facet='journal,volume', url=url, key=key, raw=TRUE)
+a <- solr_stats(q='science', stats.field='counter_total_all', base=url, raw=TRUE, verbose=FALSE)
+b <- solr_stats(q='ecology', stats.field=c('counter_total_all','alm_twitterCount'), stats.facet=c('journal','volume'), base=url, verbose=FALSE)
+c <- solr_stats(q='ecology', stats.field=c('counter_total_all','alm_twitterCount'), stats.facet=c('journal','volume'), base=url, raw=TRUE, verbose=FALSE)
 d <- solr_parse(c) # list
 e <- solr_parse(c, 'df') # data.frame
 
@@ -20,7 +19,7 @@ test_that("solr_stats returns the correct dimensions", {
   expect_that(length(d$data$alm_twitterCount), equals(8))
   expect_that(length(e$facet$alm_twitterCount), equals(2))
   expect_that(length(e$facet$alm_twitterCount$volume), equals(9))
-  expect_that(length(e$facet$alm_twitterCount$volume$missing), equals(11))
+  expect_that(length(e$facet$alm_twitterCount$volume$missing), equals(12))
 })
 
 test_that("solr_stats returns the correct classes", {
